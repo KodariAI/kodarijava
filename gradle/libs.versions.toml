@@ -1,0 +1,22 @@
+[versions]
+# important
+netty = "4.2.1.Final"
+gson = "2.13.1"
+
+# useful
+lombok = "1.18.42"
+
+[libraries]
+# important
+netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
+netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
+# useful
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+
+[bundles]
+netty = ["netty-handler", "netty-codec-http"]
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.3.0" }

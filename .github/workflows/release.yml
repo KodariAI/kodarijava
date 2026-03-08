@@ -37,11 +37,6 @@ jobs:
         env:
           GRADLE_OPTS: "-Dhttp.agent=Gradle"
 
-      - name: Delete existing release
-        run: gh release delete "v${{ steps.get_version.outputs.VERSION }}" --yes --cleanup-tag || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:

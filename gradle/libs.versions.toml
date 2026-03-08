@@ -1,7 +1,7 @@
 [versions]
 # important
-netty = "4.2.1.Final"
-gson = "2.13.1"
+netty = "4.2.10.Final"
+gson = "2.13.2"
 
 # useful
 lombok = "1.18.42"
@@ -19,4 +19,4 @@ lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" 
 netty = ["netty-handler", "netty-codec-http"]
 
 [plugins]
-shadow = { id = "com.gradleup.shadow", version = "9.3.0" }
+shadow = { id = "com.gradleup.shadow", version = "9.3.2" }

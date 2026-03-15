@@ -19,4 +19,4 @@ lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" 
 netty = ["netty-handler", "netty-codec-http"]
 
 [plugins]
-shadow = { id = "com.gradleup.shadow", version = "9.3.2" }
+shadow = { id = "com.gradleup.shadow", version = "9.4.0" }

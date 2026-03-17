@@ -1,15 +1,39 @@
 package ai.kodari.java.model.response;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public final class ModerationResult {
 
+    private final int index;
     private final boolean safe;
     private final String category;
     private final String severity;
+
+    public ModerationResult(
+            boolean safe,
+            String category,
+            String severity
+    ) {
+        this(
+                -1,
+                safe,
+                category,
+                severity
+        );
+    }
+
+    public ModerationResult(
+            int index,
+            boolean safe,
+            String category,
+            String severity
+    ) {
+        this.index = index;
+        this.safe = safe;
+        this.category = category;
+        this.severity = severity;
+    }
 
     public boolean isToxic() {
         return "toxicity".equals(category);

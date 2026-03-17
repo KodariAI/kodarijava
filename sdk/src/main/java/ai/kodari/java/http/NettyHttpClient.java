@@ -48,7 +48,11 @@ public final class NettyHttpClient implements Closeable {
             String body
     ) {
         ByteBuf content = Unpooled.copiedBuffer(body, StandardCharsets.UTF_8);
-        return request(HttpMethod.POST, url, headers, content);
+        return request(HttpMethod.POST, url, headers, content)
+                .whenComplete((response, throwable) -> {
+                    if (throwable != null && content.refCnt() > 0)
+                        content.release();
+                });
     }
 
     private CompletableFuture<HttpResponse> request(

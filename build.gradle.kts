@@ -1,13 +1,19 @@
 plugins {
-    java
+    `java-library`
     alias(libs.plugins.shadow)
 
     id("module-java-versions") apply false
     id("kodari-publish")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
 allprojects {
-    apply(plugin = "java")
+    apply(plugin = "java-library")
 
     repositories {
         mavenCentral()
@@ -21,8 +27,8 @@ allprojects {
         compileOnly(rootProject.libs.lombok)
         annotationProcessor(rootProject.libs.lombok)
 
-        implementation(rootProject.libs.gson)
-        implementation(rootProject.libs.bundles.netty)
+        api(rootProject.libs.gson)
+        api(rootProject.libs.bundles.netty)
     }
 }
 
@@ -32,11 +38,19 @@ subprojects {
 
 dependencies {
     implementation(project(":sdk"))
+
+    shadow(libs.gson)
+    shadow(libs.bundles.netty)
 }
 
 tasks.shadowJar {
-//    relocate("io.netty", "ai.kodari.libs.netty")
-//    relocate("com.google.gson", "ai.kodari.libs.gson")
+    dependencies {
+        include(project(":sdk"))
+    }
 
     archiveClassifier.set("")
+}
+
+tasks.jar {
+    enabled = false
 }

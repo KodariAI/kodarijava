@@ -5,10 +5,10 @@ plugins {
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            from(components["shadow"])
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
-            artifact(tasks.named("shadowJar"))
         }
     }
 

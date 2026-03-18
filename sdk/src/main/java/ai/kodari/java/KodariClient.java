@@ -26,11 +26,12 @@ public final class KodariClient implements Closeable {
 
     private static final String DEFAULT_BASE_URL = "https://api.kodari.ai";
     private static final String API_PREFIX = "/api/v1"; // used everywhere
-    private static final String USER_AGENT = "kodari-java/1.0.0";
+    private static final String DEFAULT_USER_AGENT = "kodari-java/1.0.7";
     private static final Gson GSON = new Gson();
 
     private final KodariCredentials credentials;
     private final String baseUrl;
+    private final String userAgent;
     private final NettyHttpClient httpClient;
 
     private KodariClient(
@@ -38,6 +39,7 @@ public final class KodariClient implements Closeable {
     ) {
         this.credentials = builder.credentials;
         this.baseUrl = builder.baseUrl;
+        this.userAgent = builder.userAgent;
         this.httpClient = new NettyHttpClient();
     }
 
@@ -157,7 +159,7 @@ public final class KodariClient implements Closeable {
     private Map<String, String> authHeaders() {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-API-Key", credentials.apiKey());
-        headers.put("User-Agent", USER_AGENT);
+        headers.put("User-Agent", userAgent);
         return headers;
     }
 
@@ -190,6 +192,7 @@ public final class KodariClient implements Closeable {
 
         private KodariCredentials credentials;
         private String baseUrl = DEFAULT_BASE_URL;
+        private String userAgent = DEFAULT_USER_AGENT;
 
         private Builder() {}
 
@@ -204,6 +207,13 @@ public final class KodariClient implements Closeable {
                 String baseUrl
         ) {
             this.baseUrl = baseUrl;
+            return this;
+        }
+
+        public Builder userAgent(
+                String userAgent
+        ) {
+            this.userAgent = userAgent;
             return this;
         }
 

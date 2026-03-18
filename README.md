@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("ai.kodari:kodarijava:1.0.0")
+    implementation("ai.kodari:kodarijava:1.0.7")
 }
 ```
 
@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'ai.kodari:kodarijava:1.0.0'
+    implementation 'ai.kodari:kodarijava:1.0.7'
 }
 ```
 
@@ -41,6 +41,17 @@ dependencies {
     <artifactId>kodarijava</artifactId>
     <version>1.0.0</version>
 </dependency>
+```
+
+### Excluding Dependencies
+
+If your project already provides Gson or Netty (e.g., Minecraft servers), you can exclude them:
+
+```kotlin
+implementation("ai.kodari:kodarijava:1.0.7") {
+    exclude(group = "com.google.code.gson", module = "gson")
+    exclude(group = "io.netty")
+}
 ```
 
 ## Quick Start

@@ -35,8 +35,8 @@ dependencies {
 }
 
 tasks.shadowJar {
-    relocate("io.netty", "ai.kodari.libs.netty")
-    relocate("com.google.gson", "ai.kodari.libs.gson")
+//    relocate("io.netty", "ai.kodari.libs.netty")
+//    relocate("com.google.gson", "ai.kodari.libs.gson")
 
     archiveClassifier.set("")
 }

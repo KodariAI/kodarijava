@@ -4,11 +4,15 @@ import ai.kodari.java.exception.KodariAuthenticationException;
 import ai.kodari.java.exception.KodariException;
 import ai.kodari.java.exception.KodariInsufficientTokensException;
 import ai.kodari.java.exception.KodariRateLimitException;
+import ai.kodari.java.http.BinaryHttpResponse;
 import ai.kodari.java.http.HttpResponse;
 import ai.kodari.java.http.NettyHttpClient;
 import ai.kodari.java.model.KodariModel;
+import ai.kodari.java.model.response.CompileResponse;
+import ai.kodari.java.model.response.GenerateResponse;
 import ai.kodari.java.model.response.ModerationResult;
 import ai.kodari.java.model.response.ModelResponse;
+import ai.kodari.java.model.response.SessionResponse;
 import ai.kodari.java.model.response.UserResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -26,7 +30,7 @@ public final class KodariClient implements Closeable {
 
     private static final String DEFAULT_BASE_URL = "https://api.kodari.ai";
     private static final String API_PREFIX = "/api/v1"; // used everywhere
-    private static final String DEFAULT_USER_AGENT = "kodari-java/1.0.7";
+    private static final String DEFAULT_USER_AGENT = "kodari-java/1.0.8";
     private static final Gson GSON = new Gson();
 
     private final KodariCredentials credentials;
@@ -55,6 +59,72 @@ public final class KodariClient implements Closeable {
         return get("/users/me")
                 .thenApply(json -> GSON.fromJson(json, UserResponse.class));
     }
+
+    public CompletableFuture<SessionResponse> createSession(
+            String name,
+            String gameType,
+            String category,
+            String aiModel
+    ) {
+        JsonObject body = new JsonObject();
+        body.addProperty("name", name);
+        body.addProperty("gameType", gameType);
+        body.addProperty("category", category);
+        body.addProperty("aiModel", aiModel);
+
+        return post("/sessions", body)
+                .thenApply(json -> GSON.fromJson(json, SessionResponse.class));
+    }
+
+    public CompletableFuture<GenerateResponse> generate(
+            String sessionId,
+            String message
+    ) {
+        return generate(sessionId, message, false);
+    }
+
+    public CompletableFuture<GenerateResponse> generate(
+            String sessionId,
+            String message,
+            boolean hasDependencies
+    ) {
+        JsonObject body = new JsonObject();
+        body.addProperty("message", message);
+        body.addProperty("hasDependencies", hasDependencies);
+
+        return post("/sessions/" + sessionId + "/generate", body)
+                .thenApply(json -> new GenerateResponse(
+                        json.get("sessionId").getAsString(),
+                        json.get("success").getAsBoolean(),
+                        json.get("message").getAsString()
+                ));
+    }
+
+    public CompletableFuture<CompileResponse> compile(
+            String sessionId
+    ) {
+        return post("/sessions/" + sessionId + "/compile", new JsonObject())
+                .thenApply(json -> new CompileResponse(
+                        json.get("sessionId").getAsString(),
+                        json.get("success").getAsBoolean(),
+                        json.has("jarId") && !json.get("jarId").isJsonNull() ? json.get("jarId").getAsLong() : null,
+                        json.has("pluginName") && !json.get("pluginName").isJsonNull() ? json.get("pluginName").getAsString() : null,
+                        json.has("jarSize") && !json.get("jarSize").isJsonNull() ? json.get("jarSize").getAsInt() : null,
+                        json.has("error") && !json.get("error").isJsonNull() ? json.get("error").getAsString() : null
+                ));
+    }
+
+    public CompletableFuture<byte[]> downloadJar(
+            long jarId
+    ) {
+        String url = baseUrl + API_PREFIX + "/download/jar/" + jarId;
+        Map<String, String> headers = authHeaders();
+        headers.put("Content-Type", "application/json");
+
+        return httpClient.postForBytes(url, headers, "{}")
+                .thenApply(this::handleBinaryResponse);
+    }
+
 
     /**
      * Kodari Specialized Models
@@ -163,11 +233,10 @@ public final class KodariClient implements Closeable {
         return headers;
     }
 
-    private JsonObject handleResponse(
-            HttpResponse response
+    private void checkStatus(
+            int status,
+            String errorBody
     ) {
-        int status = response.statusCode();
-
         if (status == 401)
             throw new KodariAuthenticationException("Invalid or expired API key");
 
@@ -178,9 +247,21 @@ public final class KodariClient implements Closeable {
             throw new KodariInsufficientTokensException("Insufficient tokens");
 
         if (status != 200)
-            throw new KodariException("API error (HTTP " + status + "): " + response.body());
+            throw new KodariException("API error (HTTP " + status + "): " + errorBody);
+    }
 
+    private JsonObject handleResponse(
+            HttpResponse response
+    ) {
+        checkStatus(response.statusCode(), response.body());
         return GSON.fromJson(response.body(), JsonObject.class);
+    }
+
+    private byte[] handleBinaryResponse(
+            BinaryHttpResponse response
+    ) {
+        checkStatus(response.statusCode(), new String(response.body()));
+        return response.body();
     }
 
     @Override

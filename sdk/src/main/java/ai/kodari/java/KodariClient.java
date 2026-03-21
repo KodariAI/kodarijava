@@ -93,11 +93,49 @@ public final class KodariClient implements Closeable {
         body.addProperty("hasDependencies", hasDependencies);
 
         return post("/sessions/" + sessionId + "/generate", body)
-                .thenApply(json -> new GenerateResponse(
-                        json.get("sessionId").getAsString(),
-                        json.get("success").getAsBoolean(),
-                        json.get("message").getAsString()
-                ));
+                .thenCompose(json -> {
+                    boolean success = json.get("success").getAsBoolean();
+
+                    if (!success)
+                        return CompletableFuture.completedFuture(new GenerateResponse(
+                                json.get("sessionId").getAsString(),
+                                false,
+                                json.get("message").getAsString()
+                        ));
+
+                    return pollUntilComplete(sessionId);
+                });
+    }
+
+    private CompletableFuture<GenerateResponse> pollUntilComplete(
+            String sessionId
+    ) {
+        return CompletableFuture.supplyAsync(() -> {
+            int maxAttempts = 120;
+            int pollIntervalMs = 2000;
+
+            for (int i = 0; i < maxAttempts; ++i) {
+                try {
+                    Thread.sleep(pollIntervalMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return new GenerateResponse(sessionId, false, "Interrupted");
+                }
+
+                try {
+                    JsonObject status = get("/sessions/" + sessionId + "/generate/status").join();
+                    boolean generating = status.get("generating").getAsBoolean();
+
+                    if (!generating)
+                        return new GenerateResponse(sessionId, true, "Generation completed");
+
+                } catch (Exception e) {
+                    return new GenerateResponse(sessionId, false, "Status check failed: " + e.getMessage());
+                }
+            }
+
+            return new GenerateResponse(sessionId, false, "Generation timed out after " + (maxAttempts * pollIntervalMs / 1000) + " seconds");
+        });
     }
 
     public CompletableFuture<CompileResponse> compile(

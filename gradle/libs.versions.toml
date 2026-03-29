@@ -1,6 +1,6 @@
 [versions]
 # important
-netty = "4.2.10.Final"
+netty = "4.2.12.Final"
 gson = "2.13.2"
 
 # useful

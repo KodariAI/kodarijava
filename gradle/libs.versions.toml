@@ -1,7 +1,7 @@
 [versions]
 # important
 netty = "4.2.10.Final"
-gson = "2.13.2"
+gson = "2.14.0"
 
 # useful
 lombok = "1.18.42"

@@ -1,8 +1,17 @@
 package ai.kodari.java.model;
 
-public final class KodariModel {
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 
-    public static final String MODERATION = "moderation";
+@Getter
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public enum KodariModel {
+    MODERATION("moderation"),
+    BASIC("basic")
+    ;
 
-    private KodariModel() {}
+    String modelId;
 }

@@ -30,7 +30,7 @@ public final class KodariClient implements Closeable {
 
     private static final String DEFAULT_BASE_URL = "https://api.kodari.ai";
     private static final String API_PREFIX = "/api/v1"; // used everywhere
-    private static final String DEFAULT_USER_AGENT = "kodari-java/1.0.8";
+    private static final String DEFAULT_USER_AGENT = "kodari-java/1.0.10";
     private static final Gson GSON = new Gson();
 
     private final KodariCredentials credentials;
@@ -172,7 +172,7 @@ public final class KodariClient implements Closeable {
     public CompletableFuture<ModerationResult> moderate(
             String message
     ) {
-        return execute(KodariModel.MODERATION, message)
+        return execute(KodariModel.MODERATION.getModelId(), message)
                 .thenApply(response -> {
                     JsonObject result = response.getResult().getAsJsonObject();
                     return new ModerationResult(
@@ -183,13 +183,23 @@ public final class KodariClient implements Closeable {
                 });
     }
 
+    public CompletableFuture<String> basic(
+            String instruction,
+            String input
+    ) {
+        String combined = "# Instructions\n\n" + instruction + "\n\n# Input\n\n" + input;
+
+        return execute(KodariModel.BASIC.getModelId(), combined)
+                .thenApply(response -> response.getResult().getAsString());
+    }
+
     /**
      * If you send 5+ messages, you will get a discount of 50%
      */
     public CompletableFuture<List<ModerationResult>> moderateBatch(
             List<String> messages
     ) {
-        return executeBatch(KodariModel.MODERATION, messages)
+        return executeBatch(KodariModel.MODERATION.getModelId(), messages)
                 .thenApply(response -> {
                     JsonArray results = response.getResult().getAsJsonArray();
                     return results.asList().stream()
@@ -268,6 +278,7 @@ public final class KodariClient implements Closeable {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-API-Key", credentials.apiKey());
         headers.put("User-Agent", userAgent);
+        System.out.println("[KodariSDK] authHeaders userAgent field: " + userAgent);
         return headers;
     }
 
